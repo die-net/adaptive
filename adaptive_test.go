@@ -29,7 +29,7 @@ func (t *Throttler) stats() (int64, int64) {
 	now := timeNowFunc()
 
 	t.mu.Lock()
-	a, th := t.accepts.sum(now), t.throttles.sum(now)
+	a, th := t.accepts.Sum(now), t.throttles.Sum(now)
 	t.mu.Unlock()
 	return a, th
 }
@@ -91,7 +91,7 @@ func TestRegisterBackendResponse(t *testing.T) {
 
 	for _, test := range testcases {
 		t.Run(test.desc, func(t *testing.T) {
-			th := newWithArgs(time.Duration(test.bins), test.bins, 2.0, 8)
+			th := NewWithArgs(time.Duration(test.bins), test.bins, 2.0, 8)
 			for i, tick := range test.ticks {
 				m.SetNanos(tick)
 
@@ -156,7 +156,7 @@ func TestShouldThrottleOptions(t *testing.T) {
 	for _, test := range testcases {
 		t.Run(test.desc, func(t *testing.T) {
 			m.SetNanos(0)
-			th := newWithArgs(time.Nanosecond, 1, test.ratioForAccepts, test.requestsPadding)
+			th := NewWithArgs(time.Nanosecond, 1, test.ratioForAccepts, test.requestsPadding)
 			for i, response := range responses {
 				if response != E {
 					th.RegisterBackendResponse(response == T)

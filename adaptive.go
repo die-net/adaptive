@@ -70,25 +70,24 @@ type Throttler struct {
 	ratioForAccepts float64
 	requestsPadding float64
 
-	// Number of total accepts and throttles in the lookback period.
+	// Number of total accepts and throttles in the Lookback period.
 	mu        sync.Mutex
-	accepts   *lookback
-	throttles *lookback
+	accepts   *Lookback
+	throttles *Lookback
 }
 
-// New initializes a new adaptive throttler with the default values.
+// New initializes a new adaptive Throttler with the default values.
 func New() *Throttler {
-	return newWithArgs(defaultDuration, defaultBins, defaultRatioForAccepts, defaultRequestsPadding)
+	return NewWithArgs(defaultDuration, defaultBins, defaultRatioForAccepts, defaultRequestsPadding)
 }
 
-// newWithArgs initializes a new adaptive throttler with the provided values.
-// Used only in unittests.
-func newWithArgs(duration time.Duration, bins int64, ratioForAccepts, requestsPadding float64) *Throttler {
+// NewWithArgs initializes a new adaptive Throttler with the provided values.
+func NewWithArgs(duration time.Duration, bins int64, ratioForAccepts, requestsPadding float64) *Throttler {
 	return &Throttler{
 		ratioForAccepts: ratioForAccepts,
 		requestsPadding: requestsPadding,
-		accepts:         newLookback(bins, duration),
-		throttles:       newLookback(bins, duration),
+		accepts:         NewLookback(bins, duration),
+		throttles:       NewLookback(bins, duration),
 	}
 }
 
@@ -103,14 +102,14 @@ func (t *Throttler) ShouldThrottle() bool {
 	t.mu.Lock()
 	defer t.mu.Unlock()
 
-	accepts, throttles := float64(t.accepts.sum(now)), float64(t.throttles.sum(now))
+	accepts, throttles := float64(t.accepts.Sum(now)), float64(t.throttles.Sum(now))
 	requests := accepts + throttles
 	throttleProbability := (requests - t.ratioForAccepts*accepts) / (requests + t.requestsPadding)
 	if throttleProbability <= randomProbability {
 		return false
 	}
 
-	t.throttles.add(now, 1)
+	t.throttles.Add(now, 1)
 	return true
 }
 
@@ -123,9 +122,9 @@ func (t *Throttler) RegisterBackendResponse(throttled bool) {
 
 	t.mu.Lock()
 	if throttled {
-		t.throttles.add(now, 1)
+		t.throttles.Add(now, 1)
 	} else {
-		t.accepts.add(now, 1)
+		t.accepts.Add(now, 1)
 	}
 	t.mu.Unlock()
 }

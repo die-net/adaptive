@@ -33,7 +33,7 @@ func TestLookback(t *testing.T) {
 		return ticks
 	}
 
-	// lookback.add and lookback.sum behave correctly.
+	// Lookback.Add and Lookback.Sum behave correctly.
 	testcases := []struct {
 		desc   string
 		bins   int64
@@ -73,10 +73,10 @@ func TestLookback(t *testing.T) {
 
 	for _, test := range testcases {
 		t.Run(test.desc, func(t *testing.T) {
-			lb := newLookback(test.bins, time.Duration(test.bins))
+			lb := NewLookback(test.bins, time.Duration(test.bins))
 			for i, tick := range test.ticks {
-				lb.add(tick, test.values[i])
-				if got := lb.sum(tick); got != test.want[i] {
+				lb.Add(tick, test.values[i])
+				if got := lb.Sum(tick); got != test.want[i] {
 					t.Errorf("sum for index %d got %d, want %d", i, got, test.want[i])
 				}
 			}

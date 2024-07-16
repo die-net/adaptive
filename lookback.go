@@ -20,28 +20,28 @@ package adaptive
 
 import "time"
 
-// lookback implements a moving sum over an int64 timeline.
-type lookback struct {
-	bins  int64         // Number of bins to use for lookback.
+// Lookback implements a moving sum over an int64 timeline.
+type Lookback struct {
+	bins  int64         // Number of bins to use for Lookback.
 	width time.Duration // Width of each bin.
 
 	head  int64   // Absolute bin index (time * bins / duration) of the current head bin.
-	total int64   // Sum over all the values in buf, within the lookback window behind head.
+	total int64   // Sum over all the values in buf, within the Lookback window behind head.
 	buf   []int64 // Ring buffer for keeping track of the sum elements.
 }
 
-// newLookback creates a new lookback for the given duration with a set number
+// NewLookback creates a new Lookback for the given duration with a set number
 // of bins.
-func newLookback(bins int64, duration time.Duration) *lookback {
-	return &lookback{
+func NewLookback(bins int64, duration time.Duration) *Lookback {
+	return &Lookback{
 		bins:  bins,
 		width: duration / time.Duration(bins),
 		buf:   make([]int64, bins),
 	}
 }
 
-// add is used to increment the lookback sum.
-func (l *lookback) add(t time.Time, v int64) {
+// Add is used to increment the Lookback sum.
+func (l *Lookback) Add(t time.Time, v int64) {
 	pos := l.advance(t)
 
 	if (l.head - pos) >= l.bins {
@@ -52,18 +52,18 @@ func (l *lookback) add(t time.Time, v int64) {
 	l.total += v
 }
 
-// sum returns the sum of the lookback buffer at the given time or head,
+// Sum returns the sum of the Lookback buffer at the given time or head,
 // whichever is greater.
-func (l *lookback) sum(t time.Time) int64 {
+func (l *Lookback) Sum(t time.Time) int64 {
 	l.advance(t)
 	return l.total
 }
 
-// advance prepares the lookback buffer for calls to add() or sum() at time t.
-// If head is greater than t then the lookback buffer will be untouched. The
+// advance prepares the Lookback buffer for calls to add() or sum() at time t.
+// If head is greater than t then the Lookback buffer will be untouched. The
 // absolute bin index corresponding to t is returned. It will always be less
 // than or equal to head.
-func (l *lookback) advance(t time.Time) int64 {
+func (l *Lookback) advance(t time.Time) int64 {
 	ch := l.head                               // Current head bin index.
 	nh := t.UnixNano() / l.width.Nanoseconds() // New head bin index.
 
